@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // Copyright (c) 2015-2018 Benjamin Buch
 //
-// https://github.com/bebuch/disposer_module
+// https://github.com/bebuch/disposer-cli
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,7 @@
 #include <mutex>
 
 
-namespace disposer_module{
+namespace disposer_cli{
 
 
 	std::weak_ptr< std::ostream > stdlog::weak_file_ptr{};
@@ -58,7 +58,7 @@ namespace logsys{
 
 
 	std::function< std::unique_ptr< stdlogb >() > stdlogb::factory_object(
-		[](){ return std::make_unique< disposer_module::stdlog >(); }
+		[](){ return std::make_unique< disposer_cli::stdlog >(); }
 	);
 
 
