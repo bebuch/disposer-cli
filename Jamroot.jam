@@ -47,6 +47,7 @@ project disposer-cli
 	<toolset>clang:<linkflags>-lc++abi
 	<toolset>clang:<linkflags>-stdlib=libc++
 
+	<include>$(boost)
 	<include>$(io_tools)/include
 	<include>$(logsys)/include
 	:
