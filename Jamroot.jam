@@ -1,18 +1,9 @@
 import os ;
 local boost = [ os.environ BOOST_ROOT ] ;
 local disposer = ../disposer ;
-local gray_code = ../gray_code ;
 local io_tools = ../io_tools ;
-local bitmap = ../bitmap ;
-local range-v3 = ../range-v3 ;
-local tar = ../tar ;
-local big = ../big ;
-local webservice = ../webservice ;
 local logsys = ../logsys ;
 local cxxopts = ../cxxopts ;
-local json = ../nlohmann/json ;
-
-local vimba = /home/bebuch/media/libraries/src/Vimba_2_1 ;
 
 
 use-project /boost
@@ -23,16 +14,12 @@ use-project /logsys
 	: $(logsys)
 	;
 
-use-project /webservice
-	: $(webservice)
-	;
-
 use-project /disposer
 	: $(disposer)
 	;
 
 
-project disposer_module
+project disposer-cli
 	:
 	source-location src
 	:
@@ -60,7 +47,6 @@ project disposer_module
 	<toolset>clang:<linkflags>-lc++abi
 	<toolset>clang:<linkflags>-stdlib=libc++
 
-	<include>$(boost)
 	<include>$(io_tools)/include
 	<include>$(logsys)/include
 	:
@@ -72,290 +58,13 @@ lib log
 	log.cpp
 	;
 
-lib VimbaC
-	:
-	:
-	<name>VimbaC
-	<search>$(vimba)/VimbaC/DynamicLib/x86_64bit
-	;
-
-lib VimbaCPP
-	:
-	[ glob $(vimba)/VimbaCPP/Source/*.cpp ]
-	/disposer_module//VimbaC
-	:
-	<define>USER_SHARED_POINTER
-	<include>$(vimba)
-	;
-
-lib vimba
-	:
-	vimba.cpp
-	/disposer_module//log
-	/disposer_module//VimbaC
-	/disposer_module//VimbaCPP
-	:
-	<define>USER_SHARED_POINTER
-	<include>$(vimba)
-	;
-
-exe disposer_module
+exe disposer-cli
 	:
 	main.cpp
-	/disposer_module//log
+	/disposer-cli//log
 	/disposer//disposer
 	/boost//system
 	/boost//filesystem
-	/boost//thread
-	/webservice//webservice
 	:
-	<include>$(bitmap)/include
 	<include>$(cxxopts)/include
-	;
-
-lib http_server
-	:
-	http_server.cpp
-	/disposer_module//log
-	/disposer//disposer
-	/webservice//webservice
-	:
-	<include>$(bitmap)/include
-	<include>$(json)/single_include
-	;
-
-lib vector_join
-	:
-	vector_join.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib vector_disjoin
-	:
-	vector_disjoin.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib save
-	:
-	save.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(io_tools)/include
-	<include>$(bitmap)/include
-	<include>$(tar)/include
-	<include>$(big)/cpp/include
-	;
-
-lib load
-	:
-	load.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(io_tools)/include
-	<include>$(bitmap)/include
-	<include>$(tar)/include
-	<include>$(big)/cpp/include
-	;
-
-lib camera_ximea
-	:
-	camera_ximea.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	<linkflags>-lm3api
-	;
-
-lib show_image
-	:
-	show_image.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	<linkflags>-L/usr/X11R6/lib
-	<linkflags>-lm
-	<linkflags>-lpthread
-	<linkflags>-lX11
-	;
-
-lib raster
-	:
-	raster.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib subbitmap
-	:
-	subbitmap.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib vignetting_correction
-	:
-	vignetting_correction.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib channel_unbundle
-	:
-	channel_unbundle.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib multi_subbitmap
-	:
-	multi_subbitmap.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	<include>$(range-v3)/include
-	;
-
-lib bitmap_vector_join
-	:
-	bitmap_vector_join.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib bitmap_join
-	:
-	bitmap_join.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib histogram
-	:
-	histogram.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib normalize_bitmap
-	:
-	normalize_bitmap.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib vignetting_correction_creator
-	:
-	vignetting_correction_creator.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib decode_png
-	:
-	decode_png.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	<linkflags>-lpng
-	;
-
-lib decode_bbf
-	:
-	decode_bbf.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib encode_bbf
-	:
-	encode_bbf.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib transform_bitmap
-	:
-	transform_bitmap.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	;
-
-lib calibchange
-	:
-	calibchange.cpp
-	/disposer_module//log
-	/disposer//disposer
-	/boost//system
-	/boost//thread
-	;
-
-lib encode_png
-	:
-	encode_png.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	<linkflags>-lpng
-	;
-
-lib encode_jpg
-	:
-	encode_jpg.cpp
-	/disposer_module//log
-	/disposer//disposer
-	:
-	<include>$(bitmap)/include
-	<linkflags>-lturbojpeg
-	;
-
-lib camera_vimba
-	:
-	camera_vimba.cpp
-	/disposer//disposer
-	/disposer_module//log
-	/disposer_module//vimba
-	/disposer_module//VimbaC
-	/disposer_module//VimbaCPP
-	:
-	<define>USER_SHARED_POINTER
-	<include>$(vimba)
-	<include>$(bitmap)/include
 	;
