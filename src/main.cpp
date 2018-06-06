@@ -54,10 +54,10 @@ int main(int argc, char** argv){
 	cxxopts::Options option_config(argv[0], "disposer module system");
 
 	option_config.add_options()
-		("components-and-modules-dir", "directory that containes the "
-			"components and modules to load by the disposer",
-			cxxopts::value< std::string >()
-			->default_value("components-and-modules"), "Directory")
+		("components-and-modules-dirs", "directories that containe "
+			"components and modules to be loaded by the disposer",
+			cxxopts::value< std::vector< std::string > >()
+			->default_value({"components-and-modules"}), "Directory")
 		("c,config", "Configuration file", cxxopts::value< std::string >(),
 			"config.ini")
 		("l,log", "Filename of the logfile; use ${date_time} as placeholder, "
@@ -136,40 +136,43 @@ int main(int argc, char** argv){
 
 	if(!logsys::exception_catching_log([](
 		logsys::stdlogb& os){ os << "loading modules"; },
-	[&system, &libraries, mc_dir =
-		options["components-and-modules-dir"].as< std::string >()
+	[&system, &libraries, mc_dirs =
+		options["components-and-modules-dirs"]
+			.as< std::vector< std::string > >()
 	]{
-		std::cout << "Search for DLLs in '" << mc_dir << "'" << std::endl;
+		for(auto& mc_dir: mc_dirs){
+			std::cout << "Search for DLLs in '" << mc_dir << "'" << std::endl;
 
-		std::regex regex("lib.*\\.so");
-		for(auto const& file: fs::directory_iterator(mc_dir)){
-			if(
-				!is_regular_file(file) ||
-				!std::regex_match(file.path().filename().string(), regex)
-			) continue;
+			std::regex regex("lib.*\\.so");
+			for(auto const& file: fs::directory_iterator(mc_dir)){
+				if(
+					!is_regular_file(file) ||
+					!std::regex_match(file.path().filename().string(), regex)
+				) continue;
 
-			auto const lib_name = file.path().stem().string().substr(3);
+				auto const lib_name = file.path().stem().string().substr(3);
 
-			logsys::log([&lib_name](logsys::stdlogb& os){
-				os << "load shared library '" << lib_name << "'";
-			}, [&]{
-				auto& library = libraries.emplace_back(file.path().string(),
-					boost::dll::load_mode::rtld_deepbind);
+				logsys::log([&lib_name](logsys::stdlogb& os){
+					os << "load shared library '" << lib_name << "'";
+				}, [&]{
+					auto& library = libraries.emplace_back(file.path().string(),
+						boost::dll::load_mode::rtld_deepbind);
 
-				if(library.has("init")){
-					library.get_alias<
-							void(
-								std::string const&,
-								disposer::declarant&
-							)
-						>("init")(lib_name, system.directory().declarant());
-				}else{
-					logsys::log([&lib_name](logsys::stdlogb& os){
-						os << "shared library '" << lib_name
-							<< "' is nighter a component nor a module";
-					});
-				}
-			});
+					if(library.has("init")){
+						library.get_alias<
+								void(
+									std::string const&,
+									disposer::declarant&
+								)
+							>("init")(lib_name, system.directory().declarant());
+					}else{
+						logsys::log([&lib_name](logsys::stdlogb& os){
+							os << "shared library '" << lib_name
+								<< "' is nighter a component nor a module";
+						});
+					}
+				});
+			}
 		}
 	})) return 1;
 
