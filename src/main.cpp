@@ -54,6 +54,10 @@ int main(int argc, char** argv){
 	cxxopts::Options option_config(argv[0], "disposer module system");
 
 	option_config.add_options()
+		("components-and-modules-dir", "directory that containes the "
+			"components and modules to load by the disposer",
+			cxxopts::value< std::string >()
+			->default_value("components-and-modules"), "Directory")
 		("c,config", "Configuration file", cxxopts::value< std::string >(),
 			"config.ini")
 		("l,log", "Filename of the logfile; use ${date_time} as placeholder, "
@@ -132,12 +136,13 @@ int main(int argc, char** argv){
 
 	if(!logsys::exception_catching_log([](
 		logsys::stdlogb& os){ os << "loading modules"; },
-	[&system, &libraries]{
-		auto program_dir = boost::dll::program_location().remove_filename();
-		std::cout << "Search for DLLs in '" << program_dir << "'" << std::endl;
+	[&system, &libraries, mc_dir =
+		options["components-and-modules-dir"].as< std::string >()
+	]{
+		std::cout << "Search for DLLs in '" << mc_dir << "'" << std::endl;
 
 		std::regex regex("lib.*\\.so");
-		for(auto const& file: fs::directory_iterator(program_dir)){
+		for(auto const& file: fs::directory_iterator(mc_dir)){
 			if(
 				!is_regular_file(file) ||
 				!std::regex_match(file.path().filename().string(), regex)
