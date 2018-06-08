@@ -70,9 +70,11 @@ int main(int argc, char** argv){
 		("s,server", "Run until the enter key is pressed")
 		("m,multithreading",
 			"All N executions of a chain are stated instantly")
-		("chain", "Execute a chain", cxxopts::value< std::string >(), "Name")
+		("chain", "Execute a chain",
+			cxxopts::value< std::vector< std::string > >(), "Name")
 		("n,count", "Count of chain executions",
-			cxxopts::value< std::size_t >()->default_value("1"), "Count")
+			cxxopts::value< std::vector< std::size_t > >()
+			->default_value({"1"}), "Count")
 		("list-components", "Print all component names")
 		("list-modules", "Print all module names")
 		("component-help", "Print the help text of the given component",
@@ -241,36 +243,40 @@ int main(int argc, char** argv){
 			system.load_config_file(config);
 		})) return -1;
 
-	if(options["chain"].count() > 0){
-		logsys::exception_catching_log(
-			[](logsys::stdlogb& os){ os << "exec chains"; },
+	logsys::exception_catching_log(
+		[](logsys::stdlogb& os){ os << "exec chains"; },
 		[&system, &options]{
 			auto const multithreading = options["multithreading"].count() > 0;
-			auto const exec_chain = options["chain"].as< std::string >();
-			auto const exec_count = options["count"].as< std::size_t >();
+			auto const exec_chains =
+				options["chain"].as< std::vector< std::string > >();
+			auto const exec_counts =
+				options["count"].as< std::vector< std::size_t > >();
+			for(std::size_t i = 0; i < exec_chains.size(); ++i){
+				auto const exec_count =
+					exec_counts.size() > i ? exec_counts[i] : 1;
 
-			disposer::enabled_chain chain(system, exec_chain);
+				disposer::enabled_chain chain(system, exec_chains[i]);
 
-			if(!multithreading){
-				// single thread version
-				for(std::size_t i = 0; i < exec_count; ++i){
-					chain.exec();
-				}
-			}else{
-				// multi threaded version
-				std::vector< std::future< void > > tasks;
-				tasks.reserve(exec_count);
+				if(!multithreading){
+					// single thread version
+					for(std::size_t j = 0; j < exec_count; ++j){
+						chain.exec();
+					}
+				}else{
+					// multi threaded version
+					std::vector< std::future< void > > tasks;
+					tasks.reserve(exec_count);
 
-				for(std::size_t i = 0; i < exec_count; ++i){
-					tasks.push_back(std::async([&chain]{ chain.exec(); }));
-				}
+					for(std::size_t j = 0; j < exec_count; ++j){
+						tasks.push_back(std::async([&chain]{ chain.exec(); }));
+					}
 
-				for(auto& task: tasks){
-					task.get();
+					for(auto& task: tasks){
+						task.get();
+					}
 				}
 			}
 		});
-	}
 
 	if(options["server"].count() > 0){
 		std::cout << "Hit Enter to exit!" << std::endl;
