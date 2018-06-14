@@ -243,40 +243,45 @@ int main(int argc, char** argv){
 			system.load_config_file(config);
 		})) return -1;
 
-	logsys::exception_catching_log(
-		[](logsys::stdlogb& os){ os << "exec chains"; },
-		[&system, &options]{
-			auto const multithreading = options["multithreading"].count() > 0;
-			auto const exec_chains =
-				options["chain"].as< std::vector< std::string > >();
-			auto const exec_counts =
-				options["count"].as< std::vector< std::size_t > >();
-			for(std::size_t i = 0; i < exec_chains.size(); ++i){
-				auto const exec_count =
-					exec_counts.size() > i ? exec_counts[i] : 1;
+	if(options["chain"].count() > 0){
+		logsys::exception_catching_log(
+			[](logsys::stdlogb& os){ os << "exec chains"; },
+			[&system, &options]{
+				auto const multithreading =
+					options["multithreading"].count() > 0;
+				auto const exec_chains =
+					options["chain"].as< std::vector< std::string > >();
+				auto const exec_counts =
+					options["count"].as< std::vector< std::size_t > >();
+				for(std::size_t i = 0; i < exec_chains.size(); ++i){
+					auto const exec_count =
+						exec_counts.size() > i ? exec_counts[i] : 1;
 
-				disposer::enabled_chain chain(system, exec_chains[i]);
+					disposer::enabled_chain chain(system, exec_chains[i]);
 
-				if(!multithreading){
-					// single thread version
-					for(std::size_t j = 0; j < exec_count; ++j){
-						chain.exec();
-					}
-				}else{
-					// multi threaded version
-					std::vector< std::future< void > > tasks;
-					tasks.reserve(exec_count);
+					if(!multithreading){
+						// single thread version
+						for(std::size_t j = 0; j < exec_count; ++j){
+							chain.exec();
+						}
+					}else{
+						// multi threaded version
+						std::vector< std::future< void > > tasks;
+						tasks.reserve(exec_count);
 
-					for(std::size_t j = 0; j < exec_count; ++j){
-						tasks.push_back(std::async([&chain]{ chain.exec(); }));
-					}
+						for(std::size_t j = 0; j < exec_count; ++j){
+							tasks.push_back(std::async([&chain]{
+									chain.exec();
+								}));
+						}
 
-					for(auto& task: tasks){
-						task.get();
+						for(auto& task: tasks){
+							task.get();
+						}
 					}
 				}
-			}
-		});
+			});
+	}
 
 	if(options["server"].count() > 0){
 		std::cout << "Hit Enter to exit!" << std::endl;
