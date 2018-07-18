@@ -11,7 +11,7 @@
 #include <disposer/disposer.hpp>
 
 #include <logsys/log.hpp>
-#include <logsys/stdlogb.hpp>
+#include <logsys/stdlogb_factory_object.hpp>
 
 #include <io_tools/name_generator.hpp>
 #include <io_tools/time_to_dir_string.hpp>
@@ -29,16 +29,34 @@
 #include <csignal>
 
 
-std::string const program_start_time = io_tools::time_to_dir_string();
+namespace disposer_cli{
 
-void signal_handler(int signum){
-	std::signal(signum, SIG_DFL);
-	{
-		std::ofstream os(program_start_time + "_stacktrace.dump");
-		if(os) os << boost::stacktrace::stacktrace();
+
+	std::string const program_start_time = io_tools::time_to_dir_string();
+
+	void signal_handler(int signum){
+		std::signal(signum, SIG_DFL);
+		{
+			std::ofstream os(program_start_time + "_stacktrace.dump");
+			if(os) os << boost::stacktrace::stacktrace();
+		}
+		std::cerr << boost::stacktrace::stacktrace();
+		std::raise(SIGABRT);
 	}
-	std::cerr << boost::stacktrace::stacktrace();
-	std::raise(SIGABRT);
+
+
+	std::unique_ptr< logsys::stdlogb > log_factory()noexcept try{
+		return std::make_unique< disposer_cli::stdlog >();
+	}catch(std::exception const& e){
+		std::cerr << "terminate with exception in stdlogb factory: "
+			<< e.what() << '\n';
+		std::terminate();
+	}catch(...){
+		std::cerr << "terminate with unknown exception in stdlogb factory\n";
+		std::terminate();
+	}
+
+
 }
 
 
@@ -48,8 +66,10 @@ int main(int argc, char** argv){
 	namespace fs = boost::filesystem;
 
 	// Set signal handler
-	std::signal(SIGSEGV, signal_handler);
-	std::signal(SIGABRT, signal_handler);
+	std::signal(SIGSEGV, &disposer_cli::signal_handler);
+	std::signal(SIGABRT, &disposer_cli::signal_handler);
+
+	logsys::stdlogb_factory_object = &disposer_cli::log_factory;
 
 	cxxopts::Options option_config(argv[0], "disposer module system");
 
@@ -122,7 +142,7 @@ int main(int argc, char** argv){
 			std::make_pair("date_time"s,
 				[](std::string const& str){ return str; }));
 
-		auto const filename = generator(program_start_time);
+		auto const filename = generator(disposer_cli::program_start_time);
 		logfile = std::make_shared< std::ofstream >(filename);
 		if(!*logfile){
 			throw std::runtime_error("Can not open log-file: " + filename);

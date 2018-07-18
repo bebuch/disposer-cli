@@ -52,21 +52,3 @@ namespace disposer_cli{
 
 
 }
-
-
-namespace logsys{
-
-
-	std::unique_ptr< stdlogb > stdlogb::factory()noexcept try{
-		return std::make_unique< disposer_cli::stdlog >();
-	}catch(std::exception const& e){
-		std::cerr << "terminate with exception in stdlogb factory: "
-			<< e.what() << '\n';
-		std::terminate();
-	}catch(...){
-		std::cerr << "terminate with unknown exception in stdlogb factory\n";
-		std::terminate();
-	}
-
-
-}

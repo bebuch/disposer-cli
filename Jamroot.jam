@@ -33,12 +33,14 @@ project disposer-cli
 
 	<toolset>gcc:<cxxflags>-std=gnu++1z
 	<toolset>gcc:<cxxflags>-fconstexpr-depth=1024
+	<toolset>gcc:<cxxflags>-fvisibility=hidden
 	<toolset>gcc:<cxxflags>-Wno-parentheses
 	<toolset>gcc:<linkflags>-lpthread
 	<toolset>gcc:<linkflags>-ldl
 
 	<toolset>clang:<cxxflags>-std=c++1z
 	<toolset>clang:<cxxflags>-fconstexpr-depth=1024
+	<toolset>clang:<cxxflags>-fvisibility=hidden
 	<toolset>clang:<cxxflags>-stdlib=libc++
 	<toolset>clang:<cxxflags>-Wno-gnu-string-literal-operator-template
 	<toolset>clang:<cxxflags>-DBOOST_ASIO_HAS_STD_CHRONO
@@ -54,15 +56,11 @@ project disposer-cli
 	usage-requirements <include>include
 	;
 
-lib log
-	:
-	log.cpp
-	;
-
 exe disposer-cli
 	:
 	main.cpp
-	/disposer-cli//log
+	log.cpp
+	/logsys//logsys
 	/disposer//disposer
 	/boost//system
 	/boost//filesystem
