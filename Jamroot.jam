@@ -43,6 +43,8 @@ project disposer-cli
 	<toolset>clang:<cxxflags>-fvisibility=hidden
 	<toolset>clang:<cxxflags>-stdlib=libc++
 	<toolset>clang:<cxxflags>-Wno-gnu-string-literal-operator-template
+	<toolset>clang:<variant>debug:<cxxflags>-fstandalone-debug
+	<toolset>clang:<variant>debug:<cxxflags>-fno-limit-debug-info
 	<toolset>clang:<variant>debug:<define>_LIBCPP_DEBUG
 	<toolset>clang:<linkflags>-lpthread
 	<toolset>clang:<linkflags>-ldl
