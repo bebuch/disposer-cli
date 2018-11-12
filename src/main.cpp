@@ -27,6 +27,7 @@
 #include <iostream>
 #include <future>
 #include <csignal>
+#include <condition_variable>
 
 
 namespace disposer_cli{
@@ -42,6 +43,20 @@ namespace disposer_cli{
 		}
 		std::cerr << boost::stacktrace::stacktrace();
 		std::raise(SIGABRT);
+	}
+
+
+	std::mutex server_stop_mutex;
+	bool server_stop_ready = false;
+	std::condition_variable server_stop;
+
+	void signal_stop(int signum){
+		{
+			std::unique_lock<std::mutex> lock(server_stop_mutex);
+			server_stop_ready = true;
+		}
+		server_stop.notify_one();
+		std::signal(signum, SIG_DFL);
 	}
 
 
@@ -304,7 +319,11 @@ int main(int argc, char** argv){
 	}
 
 	if(options["server"].count() > 0){
-		std::cout << "Hit Enter to exit!" << std::endl;
-		std::cin.get();
+		std::signal(SIGINT, &disposer_cli::signal_stop);
+
+		std::unique_lock< std::mutex > lock(disposer_cli::server_stop_mutex);
+		std::cout << "Press CNTL-C to exit!" << std::endl;
+		disposer_cli::server_stop.wait(lock,
+			[]{return disposer_cli::server_stop_ready;});
 	}
 }
