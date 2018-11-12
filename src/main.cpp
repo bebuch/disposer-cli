@@ -103,6 +103,8 @@ int main(int argc, char** argv){
 			"disposer.log")
 		("no-log", "Don't create a log file")
 		("s,server", "Run until the enter key is pressed")
+		("b,background", "If server mode run in background without waiting "
+			"on keypress")
 		("m,multithreading",
 			"All N executions of a chain are stated instantly")
 		("chain", "Execute a chain",
@@ -319,10 +321,18 @@ int main(int argc, char** argv){
 	}
 
 	if(options["server"].count() > 0){
-		std::signal(SIGINT, &disposer_cli::signal_stop);
+		if(options["background"].count() == 0){
+			// Wait on CLTR-C
+			std::signal(SIGINT, &disposer_cli::signal_stop);
+		}else{
+			// Wait on terminate signal
+			std::signal(SIGTERM, &disposer_cli::signal_stop);
+		}
 
 		std::unique_lock< std::mutex > lock(disposer_cli::server_stop_mutex);
-		std::cout << "Press CNTL-C to exit!" << std::endl;
+		if(options["background"].count() == 0){
+			std::cout << "Press CNTL-C to exit!" << std::endl;
+		}
 		disposer_cli::server_stop.wait(lock,
 			[]{return disposer_cli::server_stop_ready;});
 	}
