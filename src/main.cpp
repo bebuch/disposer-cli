@@ -60,7 +60,7 @@ namespace disposer_cli{
 	}
 
 
-	std::unique_ptr< logsys::stdlogb > log_factory()noexcept try{
+	std::unique_ptr< logsys::stdlog_base > log_factory()noexcept try{
 		return std::make_unique< disposer_cli::stdlog >();
 	}catch(std::exception const& e){
 		std::cerr << "terminate with exception in stdlogb factory: "
