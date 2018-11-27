@@ -20,7 +20,7 @@ namespace disposer_cli{
 
 	void stdlog::exec()const noexcept try{
 		using boost::algorithm::replace_all;
-		auto line = io_tools::mask_non_print(os_.str()) + "\n";
+		auto line = make_log_line();
 
 		if(auto file = weak_file_ptr.lock()){
 			static std::recursive_mutex mutex;
