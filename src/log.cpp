@@ -28,13 +28,13 @@ namespace disposer_cli{
 			*file << line;
 		}
 
-		replace_all(line, "(WARNING)", "\033[1;33m(WARNING)\033[0m");
-		replace_all(line, "(FAILED)", "\033[0;31m(FAILED)\033[0m");
-		replace_all(line, "(ERROR)", "\033[1;31m(ERROR)\033[0m");
-		replace_all(line, "EXCEPTION CATCHED:",
-			"\033[41;1mEXCEPTION CATCHED:\033[0m");
-		replace_all(line, "EXCEPTION WHILE LOGGING:",
-			"\033[1;31mEXCEPTION WHILE LOGGING:\033[0m");
+		replace_all(line, "WARNING", "\033[1;33mWARNING\033[0m");
+		replace_all(line, "ERROR", "\033[1;31mERROR\033[0m");
+		replace_all(line, "BODY FAILED", "\033[0;31mBODY FAILED\033[0m");
+		replace_all(line, "BODY EXCEPTION CATCHED:",
+			"\033[41;1mBODY EXCEPTION CATCHED:\033[0m");
+		replace_all(line, "LOG EXCEPTION CATCHED:",
+			"\033[1;31mLOG EXCEPTION CATCHED:\033[0m");
 
 		static std::recursive_mutex mutex;
 		std::lock_guard lock(mutex);
