@@ -33,7 +33,7 @@
 namespace disposer_cli{
 
 
-	std::string const program_start_time = io_tools::time_to_dir_string();
+	auto const program_start_time = io_tools::time_to_dir_string();
 
 	void signal_handler(int signum){
 		std::signal(signum, SIG_DFL);
@@ -47,7 +47,7 @@ namespace disposer_cli{
 
 
 	std::mutex server_stop_mutex;
-	bool server_stop_ready = false;
+	auto server_stop_ready = false;
 	std::condition_variable server_stop;
 
 	void signal_stop(int signum){
@@ -272,7 +272,7 @@ int main(int argc, char** argv){
 		return 0;
 	}
 
-	std::string const config = options["config"].as< std::string >();
+	auto const config = options["config"].as< std::string >();
 
 	if(!logsys::exception_catching_log(
 		[](logsys::stdlogb& os){ os << "loading config"; },
